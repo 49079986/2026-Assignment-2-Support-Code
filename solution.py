@@ -30,7 +30,6 @@ class Solver:
         #
         pass
 
-    # TODO: next time, make this method external to the solver class
     @staticmethod
     def testcases_to_attempt():
         """
