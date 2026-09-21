@@ -106,7 +106,7 @@ class Solver:
         """
         Retrieve the optimal action for the given state (based on values computed by Value Iteration).
         :param state: the current state
-        :return: optimal action for the given state (element of ROBOT_ACTIONS)
+        :return: optimal action for the given state (element of ACTIONS)
         """
         #
         # TODO: Implement code to return the optimal action for the given state (based on your stored VI values) here.
@@ -123,7 +123,7 @@ class Solver:
         """
         #
         # TODO: Implement any initialisation for Policy Iteration (e.g. building a list of states) here. You should not
-        #  perform policy iteration in this method. You should assume an initial policy of always move FORWARDS.
+        #  perform policy iteration in this method. You can assume an initial policy of always applying WALK_RIGHT.
         #
         # In order to ensure compatibility with tester, you should avoid adding additional arguments to this function.
         #
@@ -170,7 +170,7 @@ class Solver:
         """
         Retrieve the optimal action for the given state (based on values computed by Value Iteration).
         :param state: the current state
-        :return: optimal action for the given state (element of ROBOT_ACTIONS)
+        :return: optimal action for the given state (element of ACTIONS)
         """
         #
         # TODO: Implement code to return an action for the given state (based on your stored PI policy) here.
