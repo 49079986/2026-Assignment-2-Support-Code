@@ -202,9 +202,11 @@ class Solver:
         return self.game_env.grid_data[state.row][state.col] == GameEnv.CRATER_TILE
 
     def _actions_for_state(self, state):
-        if self._is_crater(state):
-            return tuple(GameEnv.JUMP_ACTIONS)
-        return tuple(GameEnv.WALK_ACTIONS | GameEnv.BOOST_ACTIONS)
+        allowed = (GameEnv.JUMP_ACTIONS if self._is_crater(state)
+                   else GameEnv.WALK_ACTIONS | GameEnv.BOOST_ACTIONS)
+        # Preserve the environment's action order so equal-valued actions are
+        # resolved consistently across Python processes.
+        return tuple(action for action in GameEnv.ACTIONS if action in allowed)
 
     def _build_model(self):
         if self.states:
@@ -260,11 +262,11 @@ class Solver:
                 total_reward = 0.0
                 for movement, (distance, distance_probability) in zip(sequence, sampled):
                     probability *= distance_probability
-                    current, reward, terminal = self._apply_dynamics_with_distance(
+                    current, reward, game_over = self._apply_dynamics_with_distance(
                         current, movement, distance
                     )
                     total_reward += reward
-                    if terminal:
+                    if game_over:
                         break
                 key = (current, round(total_reward, 12))
                 merged[key] = merged.get(key, 0.0) + probability
@@ -274,6 +276,14 @@ class Solver:
                      if prob > 0.0)
 
     def _apply_dynamics_with_distance(self, state, action, move_distance):
+        # A doubled action can become invalid after its first movement (for
+        # example, a walk that enters a crater). The simulator ignores that
+        # invalid second movement without charging its action cost.
+        if action in GameEnv.JUMP_ACTIONS and not self._is_crater(state):
+            return state, 0.0, False
+        if action in (GameEnv.WALK_ACTIONS | GameEnv.BOOST_ACTIONS) and self._is_crater(state):
+            return state, 0.0, False
+
         reward = -self.game_env.ACTION_COST[action]
         direction = self.game_env._action_direction(action)
         delta_row, delta_col = {
@@ -308,8 +318,7 @@ class Solver:
                 crystal_status = tuple(updated)
 
         next_state = GameState(next_row, next_col, crystal_status)
-        terminal = self.game_env.is_game_over(next_state) or self.game_env.is_solved(next_state)
-        return next_state, reward, terminal
+        return next_state, reward, self.game_env.is_game_over(next_state)
 
     def _q_value(self, state, action, values):
         total = 0.0
