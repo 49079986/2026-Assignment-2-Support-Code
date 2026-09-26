@@ -25,9 +25,14 @@ class TransitionModelTests(unittest.TestCase):
                     )
 
     def test_invalid_walk_from_crater_is_ignored(self):
-        env = GameEnv("testcases/L1.txt")
+        env = GameEnv("testcases/L2.txt")
         solver = Solver(env)
-        row, col = env.crater_positions[0]
+        row, col = next(
+            (row, col)
+            for row in range(env.n_rows)
+            for col in range(env.n_cols)
+            if env.grid_data[row][col] == GameEnv.CRATER_TILE
+        )
         state = GameState(row, col, tuple(0 for _ in env.crystal_positions))
 
         next_state, reward, game_over = solver._apply_dynamics_with_distance(

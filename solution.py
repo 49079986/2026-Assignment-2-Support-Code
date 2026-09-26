@@ -258,10 +258,11 @@ class Solver:
 
             for sampled in product(*distance_options):
                 probability = sequence_probability
+                for _, distance_probability in sampled:
+                    probability *= distance_probability
                 current = state
                 total_reward = 0.0
-                for movement, (distance, distance_probability) in zip(sequence, sampled):
-                    probability *= distance_probability
+                for movement, (distance, _) in zip(sequence, sampled):
                     current, reward, game_over = self._apply_dynamics_with_distance(
                         current, movement, distance
                     )
